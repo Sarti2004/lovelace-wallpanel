@@ -238,8 +238,21 @@ function isObject(item) {
 }
 
 function stringify(obj) {
+	// Convert arguments object to a readable space-separated string
+	if (Object.prototype.toString.call(obj) === "[object Arguments]") {
+		return Array.from(obj)
+			.map((a) => (typeof a === "string" ? a : stringify(a)))
+			.join(" ");
+	}
+	// Handle Error objects whose properties are non-enumerable
+	if (obj instanceof Error) {
+		return obj.message || obj.toString();
+	}
 	const processedObjects = [];
 	const json = JSON.stringify(obj, function (key, value) {
+		if (value instanceof Error) {
+			return value.message || value.toString();
+		}
 		if (typeof value === "object" && value !== null) {
 			if (processedObjects.indexOf(value) !== -1) {
 				// Circular reference found, discard key
@@ -3542,6 +3555,7 @@ function initWallpanel() {
 				// Make sure the "Keep WiFi on during sleep" option is enabled.
 				// Set your WiFi connection to "not metered".
 				logger.error(`Failed to update media from ${element.mediaUrl}:`, error);
+				return null;
 			} finally {
 				this.updatingMedia = false;
 			}
