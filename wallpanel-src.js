@@ -3616,6 +3616,14 @@ function initWallpanel() {
 					}
 					hiddenWidth = Math.max(setWidth - availWidth, 0);
 				}
+			} else if (tagName === "img" && !mediaElem.complete) {
+				logger.debug("Image not yet loaded, waiting for load event to set dimensions", mediaElem);
+				const onLoad = () => {
+					mediaElem.removeEventListener("load", onLoad);
+					this.setMediaDimensions();
+				};
+				mediaElem.addEventListener("load", onLoad);
+				return;
 			} else if (tagName !== "iframe" && tagName !== "embed") {
 				logger.warn("Size not available for media element", mediaElem);
 			}
